@@ -1,1 +1,0 @@
-web: dotnet RestaurantFoodPlanningSystem.dll
