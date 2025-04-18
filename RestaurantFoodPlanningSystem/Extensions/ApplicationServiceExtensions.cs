@@ -37,7 +37,7 @@ public static class ApplicationServiceExtensions
                                              opt =>
                                              {
                                                  //Console.WriteLine(config.GetConnectionString("DefaultConnection"));
-                                                 opt.UseNpgsql(config.GetConnectionString("DefaultConnection"));
+                                                 opt.UseNpgsql(Environment.GetEnvironmentVariable("CONNECTION_STRING"));
                                              });
         
         services.AddAutoMapper(typeof(MappingProfiles).Assembly);

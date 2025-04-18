@@ -61,7 +61,7 @@ public class TokenService
         }
 
         //Console.WriteLine(config["Token"]);
-        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Token"]));
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN")));
 
         SigningCredentials sc = new SigningCredentials(
                                                        key,
@@ -95,7 +95,7 @@ public class TokenService
                                                                                                      new SymmetricSecurityKey(
                                                                                                                               Encoding.UTF8
                                                                                                                                       .GetBytes(
-                                                                                                                                                config["Token"]
+                                                                                                                                                Environment.GetEnvironmentVariable("TOKEN")
                                                                                                                                                )),
                                                                                                  RequireExpirationTime = true,
                                                                                                  ClockSkew             = TimeSpan.FromHours(3)
