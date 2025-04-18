@@ -9,7 +9,7 @@ using RestaurantFoodPlanningSystem.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
-
+Console.WriteLine(connectionString);
 // Add services to the container.
 
 builder
