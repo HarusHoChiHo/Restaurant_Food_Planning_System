@@ -1,5 +1,5 @@
 import OrderItemQueryDto from "./OrderItemQueryDto";
-import OrderQueryDto from "./OrderQueryDto";
+import {OrderQueryDto} from "./OrderQueryDto";
 
 interface IOrderPlacementQueryDto {
     order: OrderQueryDto;

@@ -1,5 +1,3 @@
-import MenuItemDto from "../menu/MenuItemDto";
-
 interface IOrderItemQueryDto {
     id: number | null;
     orderId: number | null;
