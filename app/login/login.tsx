@@ -12,7 +12,7 @@ import {Input} from "@nextui-org/react";
 import {toast} from "react-toastify";
 
 interface LoginProps {
-    closeLoginPage: (state: boolean) => void;
+    closeLoginPage: (state: boolean, showLoading: boolean) => void;
 }
 
 const LoginComponent = ({closeLoginPage}: LoginProps) => {
@@ -31,7 +31,7 @@ const LoginComponent = ({closeLoginPage}: LoginProps) => {
             if (r.status === 200) {
                 r.json().then(res => {
                     login(res.value.token, (res as LoginDto<UserDto>).value.resultDto[0]);
-                    closeLoginPage(false);
+                    closeLoginPage(false, true);
                     router.refresh();
                 }).catch(error => {
                     if (error instanceof Error) {
@@ -83,7 +83,7 @@ const LoginComponent = ({closeLoginPage}: LoginProps) => {
                     <button
                         color={"primary"}
                         className={"w-[200px] h-[40px] border-2 text-white bg-black"}
-                        onClick={() => closeLoginPage(false)}
+                        onClick={() => closeLoginPage(false, false)}
                     >
                         Cancel
                     </button>

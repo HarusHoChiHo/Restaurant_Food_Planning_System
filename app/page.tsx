@@ -11,9 +11,9 @@ export default function Home() {
     const [showLoginPage, setShowLoginPage] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     
-    const hideLoginPage = (state: boolean) => {
+    const hideLoginPage = (state: boolean, showLoading: boolean) => {
         setShowLoginPage(state);
-        setIsLoading(!state);
+        setIsLoading(showLoading);
     }
     const {
         token,
