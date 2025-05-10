@@ -29,3 +29,5 @@ Cargo.lock
 *.iml
 out
 gen
+
+.env
