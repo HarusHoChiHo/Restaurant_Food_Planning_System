@@ -1,7 +1,17 @@
-use serde::{Deserialize};
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
+#[derive(Serialize,Deserialize)]
 pub struct Creation {
-    pub id: i32,
     pub name: String,
+}
+
+#[derive(Serialize,Deserialize)]
+pub struct Update {
+    pub id: i32,
+    pub name: String
+}
+
+#[derive(Serialize,Deserialize)]
+pub struct DeleteResponse {
+    pub rows: u64
 }

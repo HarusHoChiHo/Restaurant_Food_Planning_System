@@ -10,3 +10,5 @@ members = [".", "entity", "handler", "migration"]
 axum = "0.8.4"
 tokio = { version = "1.44.2", features = ["full"]}
 handler = { path = "handler"}
+tracing-subscriber = "0.3.19"
+tracing = "0.1.41"
