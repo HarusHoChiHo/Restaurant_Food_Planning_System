@@ -1,110 +1,113 @@
 use crate::AppState;
 use crate::structs::env::EnvironmentVariable;
-use crate::structs::unit;
-use crate::structs::unit::DeleteResponse;
+use crate::structs::unit::{Creation, DeleteResponse, Update};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get};
-use axum::{Json, Router};
-use entity::units::{ActiveModel, Entity as Units, Model as UnitsModel};
+use axum::{Json, Router, debug_handler};
+use entity::types::{ActiveModel as TypesActiveModel, Entity as TypesEntity, Model as TypesModel};
 use sea_orm::{
     ActiveModelTrait, Database, DatabaseConnection, DeleteResult, EntityTrait, Set, TryIntoModel,
 };
 
-#[axum::debug_handler]
+#[debug_handler]
 async fn read(
     State(state): State<AppState>,
-) -> Result<Json<Vec<UnitsModel>>, (StatusCode, String)> {
+) -> Result<Json<Vec<TypesModel>>, (StatusCode, String)> {
     let db: DatabaseConnection = Database::connect(state.env.database_url)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        .map_err(|e| {
+            eprintln!("Database connection error: {:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+        })?;
 
-    let result = Units::find().all(&db).await.map_err(|e| {
-        eprintln!("Retrieving unit data error: {:?}", e);
+    let result: Vec<TypesModel> = TypesEntity::find().all(&db).await.map_err(|e| {
+        eprintln!("Retrieving types data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
     db.close().await.map_err(|e| {
-        eprintln!("Database save error: {}", e);
+        eprintln!("Database close error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
     Ok(Json(result))
 }
 
-#[axum::debug_handler]
+#[debug_handler]
 async fn creation(
     State(state): State<AppState>,
-    Json(payload): Json<unit::Creation>,
-) -> Result<Json<UnitsModel>, (StatusCode, String)> {
+    Json(payload): Json<Creation>,
+) -> Result<Json<TypesModel>, (StatusCode, String)> {
     let db: DatabaseConnection = Database::connect(state.env.database_url)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        .map_err(|e| {
+            eprintln!("Database connection error: {:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+        })?;
 
-    let insert_result: UnitsModel = ActiveModel {
+    let types: TypesModel = TypesActiveModel {
         name: Set(payload.name),
         ..Default::default()
     }
     .save(&db)
     .await
     .map_err(|e| {
-        eprintln!("Database save error: {}", e);
+        eprintln!("Saving types data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        eprintln!("Database save error: {}", e);
+        eprintln!("Converting types data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
     db.close().await.map_err(|e| {
-        eprintln!("Database connection close error: {}", e);
+        eprintln!("Database connection close error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
-    Ok(Json(insert_result))
+    Ok(Json(types))
 }
 
-#[axum::debug_handler]
+#[debug_handler]
 async fn update(
     State(state): State<AppState>,
-    Json(payload): Json<unit::Update>,
-) -> Result<Json<UnitsModel>, (StatusCode, String)> {
+    Json(payload): Json<Update>,
+) -> Result<Json<TypesModel>, (StatusCode, String)> {
     let db: DatabaseConnection = Database::connect(state.env.database_url)
         .await
         .map_err(|e| {
-            eprintln!("Database save error: {}", e);
+            eprintln!("Database connection error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 
-    let active_model: ActiveModel = ActiveModel {
+    let result: TypesModel = TypesActiveModel {
         id: Set(payload.id),
         name: Set(payload.name),
         ..Default::default()
-    };
-
-    let update_result: UnitsModel = active_model
-        .save(&db)
-        .await
-        .map_err(|e| {
-            eprintln!("Database save error: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-        })?
-        .try_into_model()
-        .map_err(|e| {
-            eprintln!("Database convert error: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-        })?;
-
-    db.close().await.map_err(|e| {
-        eprintln!("Database close error: {}", e);
+    }
+    .save(&db)
+    .await
+    .map_err(|e| {
+        eprintln!("Update types data error: {:?}", e);
+        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    })?
+    .try_into_model()
+    .map_err(|e| {
+        eprintln!("Converting types data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
-    Ok(Json(update_result))
+    db.close().await.map_err(|e| {
+        eprintln!("Database connection close error: {:?}", e);
+        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    })?;
+
+    Ok(Json(result))
 }
 
-#[axum::debug_handler]
+#[debug_handler]
 async fn deletion(
     State(state): State<AppState>,
     Path(id): Path<i32>,
@@ -112,14 +115,17 @@ async fn deletion(
     let db: DatabaseConnection = Database::connect(state.env.database_url)
         .await
         .map_err(|e| {
-            eprintln!("Database connection error: {}", e);
+            eprintln!("Database connection error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 
-    let result: DeleteResult = Units::delete_by_id(id).exec(&db).await.unwrap();
+    let result: DeleteResult = TypesEntity::delete_by_id(id).exec(&db).await.map_err(|e| {
+        eprintln!("Deleting types data by id error: {:?}", e);
+        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    })?;
 
     db.close().await.map_err(|e| {
-        eprintln!("Database close error: {}", e);
+        eprintln!("Database connection close error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -131,6 +137,7 @@ async fn deletion(
 pub fn router() -> Router {
     let env = EnvironmentVariable::from_env().unwrap();
     let state = AppState { env };
+
     Router::new()
         .route("/", get(read).post(creation).put(update))
         .route("/{id}", delete(deletion))
