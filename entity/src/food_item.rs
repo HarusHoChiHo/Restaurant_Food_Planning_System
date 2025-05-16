@@ -5,11 +5,11 @@ use serde::{Deserialize, Serialize};
 #[sea_orm(table_name = "food_item")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: u32,
+    pub id: i32,
     pub name: String,
-    pub quantity: u32,
-    pub unit_id: u32,
-    pub type_id: u32,
+    pub quantity: i32,
+    pub unit_id: i32,
+    pub type_id: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
