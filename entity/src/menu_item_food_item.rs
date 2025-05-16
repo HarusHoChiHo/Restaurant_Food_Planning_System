@@ -14,21 +14,27 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     FoodItem,
-    MenuItem
+    MenuItem,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
-            Self::MenuItem => Entity::has_many(super::menu_item::Entity).into(),
-            Self::FoodItem => Entity::has_many(super::food_item::Entity).into()
+            Self::MenuItem => Entity::belongs_to(super::menu_item::Entity)
+                .from(Column::MenuItemId)
+                .to(super::menu_item::Column::Id)
+                .into(),
+            Self::FoodItem => Entity::belongs_to(super::food_item::Entity)
+                .from(Column::FoodItemId)
+                .to(super::food_item::Column::Id)
+                .into(),
         }
     }
 }
 
 impl Related<super::menu_item::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::FoodItem.def()
+        Relation::MenuItem.def()
     }
 }
 

@@ -19,10 +19,7 @@ pub enum Relation {
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
-            Self::MenuItemFoodItem => Entity::belongs_to(super::menu_item_food_item::Entity)
-                .from(Column::Id)
-                .to(super::menu_item_food_item::Column::MenuItemId)
-                .into(),
+            Self::MenuItemFoodItem => Entity::has_many(super::menu_item_food_item::Entity).into(),
             Self::Menu => Entity::belongs_to(super::menu::Entity)
                 .from(Column::Id)
                 .to(super::menu::Column::MenuItemId)

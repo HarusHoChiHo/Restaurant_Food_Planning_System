@@ -24,10 +24,7 @@ impl RelationTrait for Relation {
         match self {
             Self::Units => Entity::has_many(super::units::Entity).into(),
             Self::Types => Entity::has_many(super::types::Entity).into(),
-            Self::MenuItemFoodItem => Entity::belongs_to(super::menu_item_food_item::Entity)
-                .from(Column::Id)
-                .to(super::menu_item_food_item::Column::FoodItemId)
-                .into(),
+            Self::MenuItemFoodItem => Entity::has_many(super::menu_item_food_item::Entity).into(),
         }
     }
 }
