@@ -1,40 +1,63 @@
 use crate::AppState;
-use crate::req_res_structs::unit;
-use crate::req_res_structs::unit::DeleteResponse;
+use crate::req_res_structs::unit::{CommonRequestUnit, CommonResponseUnit, DeleteResponseUnit};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get};
 use axum::{Json, Router};
 use entity::units::{ActiveModel, Entity as Units, Model as UnitsModel};
-use sea_orm::{
-    ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel,
-};
+use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel};
+use utoipa::path as SwaggerAPIPath;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
 
+#[SwaggerAPIPath(
+    get,
+    path = "/",
+    responses(
+        (status=200, body=Vec<CommonResponseUnit>, description="Unit Object", example=json!({"id": 1, "name": "testing"})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[axum::debug_handler]
 async fn read(
     State(state): State<AppState>,
-) -> Result<Json<Vec<UnitsModel>>, (StatusCode, String)> {
+) -> Result<Json<Vec<CommonResponseUnit>>, (StatusCode, String)> {
     let result = Units::find()
         .all(&state.env.database_connection)
         .await
         .map_err(|e| {
             eprintln!("Retrieving unit data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-        })?;
+        })?
+        .iter()
+        .map(|item| CommonResponseUnit {
+            id: item.id,
+            name: item.name.to_owned(),
+        })
+        .collect();
 
     Ok(Json(result))
 }
 
+#[SwaggerAPIPath(
+    post,
+    path = "/",
+    request_body = CommonRequestUnit,
+    responses(
+        (status=200, body=CommonResponseUnit, description="Unit Object", example=json!({"id": 1, "name": "testing"})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[axum::debug_handler]
 async fn creation(
     State(state): State<AppState>,
-    Json(payload): Json<unit::Creation>,
-) -> Result<Json<UnitsModel>, (StatusCode, String)> {
+    Json(payload): Json<CommonRequestUnit>,
+) -> Result<Json<CommonResponseUnit>, (StatusCode, String)> {
     let insert_result: UnitsModel = ActiveModel {
         name: Set(payload.name),
         ..Default::default()
     }
-    .save(&state.env.database_connection)
+    .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
         eprintln!("Database save error: {}", e);
@@ -46,16 +69,35 @@ async fn creation(
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
-    Ok(Json(insert_result))
+    Ok(Json(CommonResponseUnit {
+        id: insert_result.id,
+        name: insert_result.name.to_owned(),
+    }))
 }
 
+#[SwaggerAPIPath(
+    put,
+    path = "/",
+    request_body = CommonRequestUnit,
+    responses(
+        (status=200, body=CommonResponseUnit, description="Unit Object", example=json!({"id": 1, "name": "testing"})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[axum::debug_handler]
 async fn update(
     State(state): State<AppState>,
-    Json(payload): Json<unit::Update>,
-) -> Result<Json<UnitsModel>, (StatusCode, String)> {
+    Json(payload): Json<CommonRequestUnit>,
+) -> Result<Json<CommonResponseUnit>, (StatusCode, String)> {
+    if payload.id.is_none() {
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "id cannot be null.".to_string(),
+        ));
+    }
+
     let active_model: ActiveModel = ActiveModel {
-        id: Set(payload.id),
+        id: Set(payload.id.unwrap()),
         name: Set(payload.name),
         ..Default::default()
     };
@@ -73,26 +115,39 @@ async fn update(
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 
-    Ok(Json(update_result))
+    Ok(Json(CommonResponseUnit {
+        id: update_result.id,
+        name: update_result.name.to_owned(),
+    }))
 }
 
+#[SwaggerAPIPath(
+    delete,
+    path = "/{id}",
+    params(("id", Path, description = "The id of unit record")),
+    responses(
+        (status=200, body=CommonResponseUnit, description="Unit Object", example=json!({"rows": 1})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[axum::debug_handler]
 async fn deletion(
     State(state): State<AppState>,
     Path(id): Path<i32>,
-) -> Result<Json<DeleteResponse>, (StatusCode, String)> {
+) -> Result<Json<DeleteResponseUnit>, (StatusCode, String)> {
     let result: DeleteResult = Units::delete_by_id(id)
         .exec(&state.env.database_connection)
         .await
         .unwrap();
 
-    Ok(Json(DeleteResponse {
+    Ok(Json(DeleteResponseUnit {
         rows: result.rows_affected,
     }))
 }
 
-pub fn router() -> Router<AppState> {
-    Router::new()
-        .route("/", get(read).post(creation).put(update))
-        .route("/{id}", delete(deletion))
+pub fn router() -> OpenApiRouter<AppState> {
+    OpenApiRouter::new().routes(routes!(read, creation, update, deletion))
+    // Router::new()
+    //     .route("/", get(read).post(creation).put(update))
+    //     .route("/{id}", delete(deletion))
 }

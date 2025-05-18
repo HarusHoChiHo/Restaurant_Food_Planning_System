@@ -33,7 +33,7 @@ async fn creation(
         name: Set(payload.name),
         ..Default::default()
     }
-    .save(&state.env.database_connection)
+    .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
         eprintln!("Saving types data error: {:?}", e);

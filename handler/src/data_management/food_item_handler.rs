@@ -1,6 +1,6 @@
 use crate::AppState;
 use crate::req_res_structs::food_item::{CommonResponse, Creation, Update};
-use crate::req_res_structs::unit::DeleteResponse;
+use crate::req_res_structs::unit::DeleteResponseUnit;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get};
@@ -50,7 +50,7 @@ async fn creation(
         unit_id: Set(payload.unit_id),
         ..Default::default()
     }
-    .save(&state.env.database_connection)
+    .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
         eprintln!("Creating food item data error: {:?}", e);
@@ -169,7 +169,7 @@ async fn update(
 async fn deletion(
     State(state): State<AppState>,
     Path(id): Path<i32>,
-) -> Result<Json<DeleteResponse>, (StatusCode, String)> {
+) -> Result<Json<DeleteResponseUnit>, (StatusCode, String)> {
     let result: DeleteResult = FoodItemEntity::delete_by_id(id)
         .exec(&state.env.database_connection)
         .await
@@ -178,7 +178,7 @@ async fn deletion(
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 
-    Ok(Json(DeleteResponse {
+    Ok(Json(DeleteResponseUnit {
         rows: result.rows_affected,
     }))
 }

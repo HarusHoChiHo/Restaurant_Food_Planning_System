@@ -1,7 +1,5 @@
-use std::os::macos::raw::stat;
-use crate::sea_orm::sqlx::postgres::types::PgCube::MultiDimension;
-use sea_orm_migration::sea_orm::{DbBackend, Statement};
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::sea_orm::{Statement};
+use sea_orm_migration::{prelude::*};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;

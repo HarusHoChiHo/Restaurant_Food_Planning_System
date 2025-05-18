@@ -8,7 +8,7 @@ pub struct Model {
     pub menu_item_id: i32,
     #[sea_orm(primary_key)]
     pub food_item_id: i32,
-    pub consumption: f32,
+    pub consumption: Decimal,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
