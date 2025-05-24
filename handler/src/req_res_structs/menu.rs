@@ -1,17 +1,22 @@
+use sea_orm::prelude::Date;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Serialize, Deserialize, ToSchema)]
-pub struct CommonResponseMi {
+pub struct CommonResponseMenu {
     pub id: i32,
-    pub name: String,
+    pub date: Date,
+    pub menu_item_id: i32
 }
+
 #[derive(Serialize, Deserialize, ToSchema)]
-pub struct CommonRequestMi {
+pub struct CommonRequestMenu {
     pub id: Option<i32>,
-    pub name: String,
+    pub date: Date,
+    pub menu_item_id: i32
 }
+
 #[derive(Serialize, Deserialize, ToSchema)]
-pub struct DeletionResponseMi {
-    pub rows: u64,
+pub struct DeleteResponseMenu {
+    pub rows: u64
 }

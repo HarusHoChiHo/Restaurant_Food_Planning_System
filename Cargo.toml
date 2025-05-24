@@ -14,5 +14,4 @@ tracing-subscriber = "0.3.19"
 tracing = "0.1.41"
 utoipa-axum = ">=0.2.0"
 utoipa-swagger-ui = {version = ">=9", features = ["axum", "vendored"] }
-utoipa = ">=5.3.1"
 

@@ -4,3 +4,6 @@ pub mod types;
 pub mod food_item;
 pub mod menu_item_food_item;
 pub mod menu_item;
+pub mod order;
+pub mod menu;
+pub mod order_item;

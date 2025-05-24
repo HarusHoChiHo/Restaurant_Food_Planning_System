@@ -2,10 +2,23 @@ use crate::AppState;
 use crate::req_res_structs::menu_item::{CommonRequestMi, CommonResponseMi, DeletionResponseMi};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::routing::{delete, get};
-use axum::{Json, Router, debug_handler};
+use axum::{Json, debug_handler};
 use entity::menu_item::{ActiveModel as MenuItemActiveModel, Entity as MenuItemEntity};
 use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel};
+use utoipa::path as SwaggerAPIPath;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
+
+#[SwaggerAPIPath(
+    get,
+    path = "/",
+    tag = "Menu Item Management",
+    operation_id = "get_menu_item",
+    responses(
+        (status=200, body=Vec<CommonResponseMi>, description="Menu Item Object", example=json!({"id": 1, "name": "testing"})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[debug_handler]
 async fn read(
     State(state): State<AppState>,
@@ -27,6 +40,17 @@ async fn read(
     Ok(Json(result))
 }
 
+#[SwaggerAPIPath(
+    post,
+    path = "/",
+    tag = "Menu Item Management",
+    operation_id = "create_menu_item",
+    request_body = CommonRequestMi,
+    responses(
+        (status=200, body=CommonRequestMi, description="Menu Item Object", example=json!({"id": 1, "name": "testing", "quantity": 1, "type":{"id": 1, "name": "type"}, "unit":{"id": 1, "name": "unit"}})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[debug_handler]
 async fn creation(
     State(state): State<AppState>,
@@ -49,20 +73,31 @@ async fn creation(
     }))
 }
 
+#[SwaggerAPIPath(
+    put,
+    path = "/",
+    tag = "Menu Item Management",
+    operation_id = "update_menu_item",
+    request_body = CommonRequestMi,
+    responses(
+        (status=200, body=CommonRequestMi, description="Menu Item Object", example=json!({"id": 1, "name": "testing", "quantity": 1, "type":{"id": 1, "name": "type"}, "unit":{"id": 1, "name": "unit"}})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[debug_handler]
 async fn update(
     State(state): State<AppState>,
     Json(payload): Json<CommonRequestMi>,
 ) -> Result<Json<CommonResponseMi>, (StatusCode, String)> {
-    if payload.id.is_none() {
-        return Err((
+    let id = payload.id.ok_or_else(|| {
+        (
             StatusCode::INTERNAL_SERVER_ERROR,
             "id cannot be null.".to_string(),
-        ));
-    }
+        )
+    })?;
 
     let result = MenuItemActiveModel {
-        id: Set(payload.id.unwrap()),
+        id: Set(id),
         name: Set(payload.name.to_owned()),
     }
     .save(&state.env.database_connection)
@@ -83,6 +118,17 @@ async fn update(
     }))
 }
 
+#[SwaggerAPIPath(
+    delete,
+    path = "/{id}",
+    tag = "Menu Item Management",
+    operation_id = "delete_menu_item",
+    params(("id", Path, description = "The id of menu item record")),
+    responses(
+        (status=200, body=DeletionResponseMi, description="Menu Item Object", example=json!({"rows": 1})),
+        (status=500, body=String, description="Error message", example=json!("Failed"))
+    )
+)]
 #[debug_handler]
 async fn deletion(
     State(state): State<AppState>,
@@ -101,8 +147,10 @@ async fn deletion(
     }))
 }
 
-pub fn router() -> Router<AppState> {
-    Router::new()
-        .route("/", get(read).post(creation).put(update))
-        .route("/{id}", delete(deletion))
+pub fn router() -> OpenApiRouter<AppState> {
+    // Router::new()
+    //     .route("/", get(read).post(creation).put(update))
+    //     .route("/{id}", delete(deletion))
+
+    OpenApiRouter::new().routes(routes!(read, creation, update, deletion))
 }

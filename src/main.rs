@@ -1,7 +1,5 @@
-use axum::{ServiceExt, serve};
-use handler::data_management::{
-    food_item_handler, menu_item_food_item_handler, menu_item_handler, types_handler, units_handler,
-};
+use axum::{serve};
+use handler::data_management::{food_item_handler, menu_handler, menu_item_food_item_handler, menu_item_handler, order_handler, order_item_handler, types_handler, units_handler};
 use tokio::net::TcpListener;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
@@ -17,22 +15,22 @@ async fn main() {
 
     let (router, api) = OpenApiRouter::new()
         .nest("/unit", units_handler::router())
-        .nest("/type", OpenApiRouter::from(types_handler::router()))
+        .nest("/type", types_handler::router())
         .nest(
             "/food_item",
-            OpenApiRouter::from(food_item_handler::router()),
+            food_item_handler::router(),
         )
         .nest(
             "/menu_item_food_item",
-            OpenApiRouter::from(menu_item_food_item_handler::router()),
+            menu_item_food_item_handler::router(),
         )
         .nest(
             "/menu_item",
-            OpenApiRouter::from(menu_item_handler::router()),
+           menu_item_handler::router(),
         )
-        // .nest("/menu", menu_handler::router())
-        // .nest("/order_item", order_item_handler::router())
-        // .nest("/order", order_handler::router())
+        .nest("/order", order_handler::router())
+        .nest("/menu", menu_handler::router())
+        .nest("/order_item", order_item_handler::router())
         .with_state(handler::init_db_con().await)
         .split_for_parts();
 

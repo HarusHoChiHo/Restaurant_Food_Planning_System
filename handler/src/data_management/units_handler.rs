@@ -2,8 +2,7 @@ use crate::AppState;
 use crate::req_res_structs::unit::{CommonRequestUnit, CommonResponseUnit, DeleteResponseUnit};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::routing::{delete, get};
-use axum::{Json, Router};
+use axum::{Json};
 use entity::units::{ActiveModel, Entity as Units, Model as UnitsModel};
 use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel};
 use utoipa::path as SwaggerAPIPath;
@@ -13,6 +12,8 @@ use utoipa_axum::routes;
 #[SwaggerAPIPath(
     get,
     path = "/",
+    tag = "Unit Management",
+    operation_id = "get_unit",
     responses(
         (status=200, body=Vec<CommonResponseUnit>, description="Unit Object", example=json!({"id": 1, "name": "testing"})),
         (status=500, body=String, description="Error message", example=json!("Failed"))
@@ -42,6 +43,8 @@ async fn read(
 #[SwaggerAPIPath(
     post,
     path = "/",
+    tag = "Unit Management",
+    operation_id = "create_unit",
     request_body = CommonRequestUnit,
     responses(
         (status=200, body=CommonResponseUnit, description="Unit Object", example=json!({"id": 1, "name": "testing"})),
@@ -78,6 +81,8 @@ async fn creation(
 #[SwaggerAPIPath(
     put,
     path = "/",
+    tag = "Unit Management",
+    operation_id = "update_unit",
     request_body = CommonRequestUnit,
     responses(
         (status=200, body=CommonResponseUnit, description="Unit Object", example=json!({"id": 1, "name": "testing"})),
@@ -124,9 +129,11 @@ async fn update(
 #[SwaggerAPIPath(
     delete,
     path = "/{id}",
+    tag = "Unit Management",
+    operation_id = "delete_unit",
     params(("id", Path, description = "The id of unit record")),
     responses(
-        (status=200, body=CommonResponseUnit, description="Unit Object", example=json!({"rows": 1})),
+        (status=200, body=DeleteResponseUnit, description="Unit Object", example=json!({"rows": 1})),
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
