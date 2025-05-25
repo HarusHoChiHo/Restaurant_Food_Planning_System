@@ -5,10 +5,12 @@ use axum::response::IntoResponse;
 use tracing::{info, instrument};
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
+use utoipa::path as SwaggerAPIPath;
 
-#[utoipa::path(
+#[SwaggerAPIPath(
     get,
     path = "/",
+    tag = "Health Check",
     responses(
         (status = 200, description = "API is healthy", body = HealthResponse)
     )
