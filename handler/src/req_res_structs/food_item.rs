@@ -3,7 +3,7 @@ use utoipa::ToSchema;
 use crate::req_res_structs::types::CommonResponseType;
 use crate::req_res_structs::unit::CommonResponseUnit;
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct CommonResponseFoodItem {
     pub id: i32,
     pub name: String,
@@ -12,7 +12,7 @@ pub struct CommonResponseFoodItem {
     pub types: CommonResponseType
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct FoodItemModel {
     pub id: i32,
     pub name: String,
@@ -21,7 +21,7 @@ pub struct FoodItemModel {
     pub types: i32
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct CommonRequestFoodItem {
     pub id: Option<i32>,
     pub name: String,
@@ -30,7 +30,7 @@ pub struct CommonRequestFoodItem {
     pub type_id: i32
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct DeleteResponseFoodItem {
     pub rows: u64
 }

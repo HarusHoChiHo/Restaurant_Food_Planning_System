@@ -12,6 +12,7 @@ tokio = { version = "1.44.2", features = ["full"]}
 handler = { path = "handler"}
 tracing-subscriber = "0.3.19"
 tracing = "0.1.41"
+utoipa = ">=5.3.1"
 utoipa-axum = ">=0.2.0"
 utoipa-swagger-ui = {version = ">=9", features = ["axum", "vendored"] }
 

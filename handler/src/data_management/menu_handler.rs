@@ -5,6 +5,7 @@ use axum::http::StatusCode;
 use axum::{Json, debug_handler};
 use entity::menu::{ActiveModel as MenuActiveModel, Entity as MenuEntity, Model as MenuModel};
 use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel};
+use tracing::{error, instrument};
 use utoipa::path as SwaggerAPIPath;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
@@ -18,6 +19,7 @@ use utoipa_axum::routes;
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn read(
     State(state): State<AppState>,
@@ -26,7 +28,7 @@ async fn read(
         .all(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Retrieving order data error: {:?}", e);
+            error!("Retrieving order data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .iter()
@@ -51,6 +53,7 @@ async fn read(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn creation(
     State(state): State<AppState>,
@@ -64,12 +67,12 @@ async fn creation(
     .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Saving order data error: {:?}", e);
+        error!("Saving order data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        eprintln!("Converting order data error: {:?}", e);
+        error!("Converting order data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -91,6 +94,7 @@ async fn creation(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn update(
     State(state): State<AppState>,
@@ -112,12 +116,12 @@ async fn update(
     .save(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Update order data error: {:?}", e);
+        error!("Update order data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        eprintln!("Converting order data error: {:?}", e);
+        error!("Converting order data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -139,6 +143,7 @@ async fn update(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn deletion(
     State(state): State<AppState>,
@@ -148,7 +153,7 @@ async fn deletion(
         .exec(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Deleting types data by id error: {:?}", e);
+            error!("Deleting types data by id error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 

@@ -7,3 +7,4 @@ pub mod menu_item;
 pub mod order;
 pub mod menu;
 pub mod order_item;
+pub(crate) mod health_check;

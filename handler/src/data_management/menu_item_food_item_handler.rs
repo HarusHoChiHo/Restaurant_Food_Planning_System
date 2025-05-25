@@ -14,6 +14,7 @@ use entity::menu_item_food_item::{
     Model as MenuItemFoodItemModel,
 };
 use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel};
+use tracing::{error, instrument};
 use utoipa::path as SwaggerAPIPath;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
@@ -28,6 +29,7 @@ use utoipa_axum::routes;
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn read(
     State(state): State<AppState>,
@@ -38,13 +40,13 @@ async fn read(
         .all(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Retrieving menu item food item data error: {:?}", e);
+            error!("Retrieving menu item food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .iter()
         .map(|(mifi, mi, fi)| {
             let mi_opt = mi.as_ref().ok_or_else(|| {
-                eprintln!(
+                error!(
                     "No menu item found for id of food item: {:?} and id of menu item: {:?}",
                     mifi.food_item_id, mifi.menu_item_id
                 );
@@ -55,7 +57,7 @@ async fn read(
             })?;
 
             let fi_opt = fi.as_ref().ok_or_else(|| {
-                eprintln!(
+                error!(
                     "No food item found for id of food item: {:?} and id of menu item: {:?}",
                     mifi.food_item_id, mifi.menu_item_id
                 );
@@ -96,6 +98,7 @@ async fn read(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 pub async fn creation(
     State(state): State<AppState>,
@@ -110,12 +113,12 @@ pub async fn creation(
     .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Creating menu item food item data error: {:?}", e);
+        error!("Creating menu item food item data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        eprintln!("Converting menu item food item data error: {:?}", e);
+        error!("Converting menu item food item data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -126,11 +129,11 @@ pub async fn creation(
             .one(&state.env.database_connection)
             .await
             .map_err(|e| {
-                eprintln!("Retrieving menu item food item data error: {:?}", e);
+                error!("Retrieving menu item food item data error: {:?}", e);
                 (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             })?
             .ok_or_else(|| {
-                eprintln!(
+                error!(
                     "No menu item food item data found: food_item_id: {:?}, menu_item_id: {:?}",
                     result.food_item_id, result.menu_item_id
                 );
@@ -141,7 +144,7 @@ pub async fn creation(
             })?;
 
     let fi_data = fi.ok_or_else(|| {
-        eprintln!(
+        error!(
             "No food item data found: food_item_id: {:?}",
             result.food_item_id
         );
@@ -152,7 +155,7 @@ pub async fn creation(
     })?;
 
     let mi_data = mi.ok_or_else(|| {
-        eprintln!(
+        error!(
             "No menu item data found: menu_item_id: {:?}",
             result.menu_item_id
         );
@@ -189,6 +192,7 @@ pub async fn creation(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 pub async fn update(
     State(state): State<AppState>,
@@ -202,7 +206,7 @@ pub async fn update(
     .save(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Updating menu item food item data error: {:?}", e);
+        error!("Updating menu item food item data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -213,13 +217,13 @@ pub async fn update(
             .one(&state.env.database_connection)
             .await
             .map_err(|e| {
-                eprintln!("Retrieving menu item food item data error: {:?}", e);
+                error!("Retrieving menu item food item data error: {:?}", e);
                 (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             })?
             .unwrap();
 
     let fi_data = fi.ok_or_else(|| {
-        eprintln!(
+        error!(
             "No food item data found: food_item_id: {:?}",
             result.food_item_id
         );
@@ -230,7 +234,7 @@ pub async fn update(
     })?;
 
     let mi_data = mi.ok_or_else(|| {
-        eprintln!(
+        error!(
             "No menu item data found: menu_item_id: {:?}",
             result.menu_item_id
         );
@@ -267,6 +271,7 @@ pub async fn update(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 pub async fn deletion(
     State(state): State<AppState>,
@@ -276,7 +281,7 @@ pub async fn deletion(
         .exec(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Deleting menu item food item data error: {:?}", e);
+            error!("Deleting menu item food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 

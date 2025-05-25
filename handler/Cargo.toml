@@ -13,3 +13,4 @@ utoipa-axum = "0.2.0"
 rust_decimal = { version = "1.37.1", features = ["serde", "serde_json"] }
 anyhow = "1.0.98"
 log = "0.4.27"
+tracing = "0.1.41"

@@ -13,6 +13,7 @@ use entity::food_item::{
 use entity::types::{Entity as TypeEntity, Model as TypeModel};
 use entity::units::{Entity as UnitEntity, Model as UnitModel};
 use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, ModelTrait, Set, TryIntoModel};
+use tracing::{error, instrument};
 use utoipa::path as SwaggerAPIPath;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
@@ -27,6 +28,7 @@ use utoipa_axum::routes;
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn read(
     State(state): State<AppState>,
@@ -37,13 +39,14 @@ async fn read(
         .all(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Retrieving food item data error: {:?}", e);
+            error!("Retrieving food item data error: {:?}", e);
+            //eprintln!("Retrieving food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .iter()
         .map(|(food, type_opt, unit_opt)| {
             let type_data = type_opt.as_ref().ok_or_else(|| {
-                eprintln!("Missing type for food item ID {}", food.id);
+                error!("Missing type for food item ID {}", food.id);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Missing type".to_string(),
@@ -51,7 +54,7 @@ async fn read(
             })?;
 
             let unit_data = unit_opt.as_ref().ok_or_else(|| {
-                eprintln!("Missing unit for food item ID {}", food.id);
+                error!("Missing unit for food item ID {}", food.id);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Missing unit".to_string(),
@@ -88,6 +91,7 @@ async fn read(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn creation(
     State(state): State<AppState>,
@@ -103,12 +107,12 @@ async fn creation(
     .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Creating food item data error: {:?}", e);
+        error!("Creating food item data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        println!("Converting food item data error: {:?}", e);
+        error!("Converting food item data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -117,11 +121,11 @@ async fn creation(
         .one(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Find type related to food item data error: {:?}", e);
+            error!("Find type related to food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .ok_or_else(|| {
-            eprintln!("No related type found for food item ID {}", result.id);
+            error!("No related type found for food item ID {}", result.id);
             (StatusCode::NOT_FOUND, "Type not found".to_string())
         })?
         .to_owned();
@@ -131,11 +135,11 @@ async fn creation(
         .one(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Find unit related to food item data error: {:?}", e);
+            error!("Find unit related to food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .ok_or_else(|| {
-            eprintln!("No related unit found for food item ID {}", result.id);
+            error!("No related unit found for food item ID {}", result.id);
             (StatusCode::NOT_FOUND, "Type not found".to_string())
         })?
         .to_owned();
@@ -168,13 +172,14 @@ async fn creation(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn update(
     State(state): State<AppState>,
     Json(payload): Json<CommonRequestFoodItem>,
 ) -> Result<Json<CommonResponseFoodItem>, (StatusCode, String)> {
     let id = payload.id.ok_or_else(|| {
-        eprintln!("ID cannot be null.");
+        error!("ID cannot be null.");
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             "ID cannot be null.".to_string(),
@@ -192,12 +197,12 @@ async fn update(
     .save(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Updating food item data error: {:?}", e);
+        error!("Updating food item data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        eprintln!("Converting food item data error: {:?}", e);
+        error!("Converting food item data error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -206,11 +211,11 @@ async fn update(
         .one(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Find type related to food item data error: {:?}", e);
+            error!("Find type related to food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .ok_or_else(|| {
-            eprintln!("No related type found for food item ID {}", result.id);
+            error!("No related type found for food item ID {}", result.id);
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Type not found".to_string(),
@@ -223,11 +228,11 @@ async fn update(
         .one(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Find unit related to food item data error: {:?}", e);
+            error!("Find unit related to food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .ok_or_else(|| {
-            eprintln!("No related unit found for food item ID {}", result.id);
+            error!("No related unit found for food item ID {}", result.id);
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Unit not found".to_string(),
@@ -263,6 +268,7 @@ async fn update(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
+#[instrument]
 #[debug_handler]
 async fn deletion(
     State(state): State<AppState>,
@@ -272,7 +278,7 @@ async fn deletion(
         .exec(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Deleting food item data error: {:?}", e);
+            error!("Deleting food item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 

@@ -1,7 +1,7 @@
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::borrow::Cow;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct EnvironmentVariable {
     pub database_connection: DatabaseConnection,
 }
@@ -15,6 +15,8 @@ impl EnvironmentVariable {
         );
         if is_dev() {
             opt.sqlx_logging_level(log::LevelFilter::Trace);
+        } else {
+            opt.sqlx_logging_level(log::LevelFilter::Info);
         }
         Ok(Self {
             database_connection: Database::connect(opt).await?,

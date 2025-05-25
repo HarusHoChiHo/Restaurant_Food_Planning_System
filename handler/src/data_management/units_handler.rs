@@ -2,9 +2,10 @@ use crate::AppState;
 use crate::req_res_structs::unit::{CommonRequestUnit, CommonResponseUnit, DeleteResponseUnit};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::{Json};
+use axum::{debug_handler, Json};
 use entity::units::{ActiveModel, Entity as Units, Model as UnitsModel};
 use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel};
+use tracing::{error, instrument};
 use utoipa::path as SwaggerAPIPath;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
@@ -19,7 +20,8 @@ use utoipa_axum::routes;
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
-#[axum::debug_handler]
+#[instrument]
+#[debug_handler]
 async fn read(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<CommonResponseUnit>>, (StatusCode, String)> {
@@ -27,7 +29,7 @@ async fn read(
         .all(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Retrieving unit data error: {:?}", e);
+            error!("Retrieving unit data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .iter()
@@ -51,7 +53,8 @@ async fn read(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
-#[axum::debug_handler]
+#[instrument]
+#[debug_handler]
 async fn creation(
     State(state): State<AppState>,
     Json(payload): Json<CommonRequestUnit>,
@@ -63,12 +66,12 @@ async fn creation(
     .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Database save error: {}", e);
+        error!("Database save error: {}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        eprintln!("Database save error: {}", e);
+        error!("Database save error: {}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -89,7 +92,8 @@ async fn creation(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
-#[axum::debug_handler]
+#[instrument]
+#[debug_handler]
 async fn update(
     State(state): State<AppState>,
     Json(payload): Json<CommonRequestUnit>,
@@ -111,12 +115,12 @@ async fn update(
         .save(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Database save error: {}", e);
+            error!("Database save error: {}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .try_into_model()
         .map_err(|e| {
-            eprintln!("Database convert error: {}", e);
+            error!("Database convert error: {}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 
@@ -137,7 +141,8 @@ async fn update(
         (status=500, body=String, description="Error message", example=json!("Failed"))
     )
 )]
-#[axum::debug_handler]
+#[instrument]
+#[debug_handler]
 async fn deletion(
     State(state): State<AppState>,
     Path(id): Path<i32>,

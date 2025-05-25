@@ -9,6 +9,7 @@ use entity::order_item::{
     ActiveModel as OrderItemActiveModel, Entity as OrderItemEntity, Model as OrderItemModel,
 };
 use sea_orm::{ActiveModelTrait, DeleteResult, EntityTrait, Set, TryIntoModel};
+use tracing::error;
 use utoipa::path as SwaggerAPIPath;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
@@ -31,7 +32,7 @@ async fn read(
         .all(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Retrieving order item data error: {:?}", e);
+            error!("Retrieving order item data error: {:?}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .iter()
@@ -69,12 +70,12 @@ async fn creation(
     .insert(&state.env.database_connection)
     .await
     .map_err(|e| {
-        eprintln!("Database save error: {}", e);
+        error!("Database save error: {}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?
     .try_into_model()
     .map_err(|e| {
-        eprintln!("Database save error: {}", e);
+        error!("Database save error: {}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
@@ -119,12 +120,12 @@ async fn update(
         .save(&state.env.database_connection)
         .await
         .map_err(|e| {
-            eprintln!("Database save error: {}", e);
+            error!("Database save error: {}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?
         .try_into_model()
         .map_err(|e| {
-            eprintln!("Database convert error: {}", e);
+            error!("Database convert error: {}", e);
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
 
