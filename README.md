@@ -1,3 +1,4 @@
+This project is deployed to Heroku. You can visit the website: <https://rfps-web-c0b1f622dc6f.herokuapp.com/>
 > [!NOTE]
 > This project uses .Net Core as backend and PostgreSQL as database. We build these two components on Docker because it would be easier to run on different platforms. Therefore, both backend application and database will run on local network.
 >
