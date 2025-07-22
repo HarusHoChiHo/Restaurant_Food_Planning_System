@@ -88,6 +88,13 @@ const LoginComponent = ({closeLoginPage}: LoginProps) => {
                         Cancel
                     </button>
                     <p hidden={hidden}>Invalid Username and password.</p>
+                    <div className={"flex flex-col mt-[25px]"}>
+                        <p>Please use below information for testing:</p>
+                        <p>Username: Harus (Role: Manager)</p>
+                        <p>Password: harus</p>
+                        <p>Username: HarusStaff (Role: Staff)</p>
+                        <p>Password: harus_staff</p>
+                    </div>
                 </div>
             </div>
     );
